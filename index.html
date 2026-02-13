@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>24点游戏</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: manipulation;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 2em;
+        }
+        
+        .numbers {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.1s;
+            user-select: none;
+        }
+        
+        .number:active {
+            transform: scale(0.95);
+        }
+        
+        .input-display {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 15px 0;
+            min-height: 40px;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-all;
+        }
+        
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .key {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border: none;
+            padding: 12px;
+            font-size: 1.2em;
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            user-select: none;
+        }
+        
+        .key:active {
+            transform: scale(0.95);
+        }
+        
+        .key.operator {
+            background: linear-gradient(45deg, #45b7d1, #2c3e50);
+        }
+        
+        .key.bracket {
+            background: linear-gradient(45deg, #96ceb4, #2a9d8f);
+        }
+        
+        .key.action {
+            background: linear-gradient(45deg, #feca57, #ff9ff3);
+            grid-column: span 2;
+        }
+        
+        .controls {
+            margin: 15px 0;
+        }
+        
+        .control-btn {
+            background: linear-gradient(45deg, #a8e6cf, #374785);
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 0 5px;
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .result {
+            margin: 15px 0;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            word-break: break-all;
+        }
+        
+        .solution {
+            color: #28a745;
+        }
+        
+        .no-solution {
+            color: #dc3545;
+        }
+        
+        .correct {
+            color: #28a745;
+            background: #d4edda;
+        }
+        
+        .incorrect {
+            color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .instructions {
+            margin-top: 15px;
+            color: #666;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .number {
+                width: 50px;
+                height: 50px;
+                font-size: 1.3em;
+            }
+            
+            .key {
+                padding: 10px;
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 24点游戏</h1>
+        <div class="numbers" id="numbers">
+            <div class="number" onclick="addToExpression(this.textContent)">1</div>
+            <div class="number" onclick="addToExpression(this.textContent)">2</div>
+            <div class="number" onclick="addToExpression(this.textContent)">3</div>
+            <div class="number" onclick="addToExpression(this.textContent)">4</div>
+        </div>
+        
+        <div class="input-display" id="expression">点击数字开始输入</div>
+        
+        <div class="keyboard">
+            <button class="key operator" onclick="addToExpression('+')">+</button>
+            <button class="key operator" onclick="addToExpression('-')">-</button>
+            <button class="key operator" onclick="addToExpression('*')">×</button>
+            <button class="key operator" onclick="addToExpression('/')">÷</button>
+            <button class="key bracket" onclick="addToExpression('(')">(</button>
+            <button class="key bracket" onclick="addToExpression(')')">)</button>
+            <button class="key" onclick="clearExpression()">清除</button>
+            <button class="key" onclick="deleteLast()">删除</button>
+        </div>
+        
+        <div class="controls">
+            <button class="control-btn" onclick="newGame()">🎲 新游戏</button>
+            <button class="control-btn" onclick="submitAnswer()">✅ 验证答案</button>
+            <button class="control-btn" onclick="solve24()">💡 求解</button>
+        </div>
+        
+        <div class="result" id="result">
+            点击"新游戏"开始！
+        </div>
+        
+        <div class="instructions">
+            <p>目标：使用四个数字，通过加减乘除运算得到24</p>
+            <p>规则：每个数字必须且只能使用一次</p>
+            <p>操作：点击数字和运算符构建表达式，然后验证答案</p>
+        </div>
+    </div>
+
+    <script>
+        let currentNumbers = [];
+        let currentExpression = '';
+        
+        // 生成随机的四个数字（1-13，模拟扑克牌）
+        function generateNumbers() {
+            const numbers = [];
+            for (let i = 0; i < 4; i++) {
+                numbers.push(Math.floor(Math.random() * 13) + 1);
+            }
+            return numbers;
+        }
+        
+        // 更新显示的数字
+        function updateNumbers(numbers) {
+            currentNumbers = numbers;
+            const numberElements = document.querySelectorAll('.number');
+            numberElements.forEach((element, index) => {
+                element.textContent = numbers[index];
+            });
+        }
+        
+        // 添加到表达式
+        function addToExpression(value) {
+            currentExpression += value;
+            updateExpressionDisplay();
+        }
+        
+        // 清除表达式
+        function clearExpression() {
+            currentExpression = '';
+            updateExpressionDisplay();
+        }
+        
+        // 删除最后一个字符
+        function deleteLast() {
+            if (currentExpression.length > 0) {
+                currentExpression = currentExpression.slice(0, -1);
+                updateExpressionDisplay();
+            }
+        }
+        
+        // 更新表达式显示
+        function updateExpressionDisplay() {
+            const display = document.getElementById('expression');
+            if (currentExpression === '') {
+                display.textContent = '点击数字开始输入';
+            } else {
+                // 将 * 和 / 转换为更友好的显示
+                let displayText = currentExpression.replace(/\*/g, '×').replace(/\//g, '÷');
+                display.textContent = displayText;
+            }
+        }
+        
+        // 验证用户答案
+        function submitAnswer() {
+            if (currentExpression === '') {
+                showResult('请输入表达式！', 'incorrect');
+                return;
+            }
+            
+            try {
+                // 验证是否使用了正确的数字
+                if (!validateNumbersUsage()) {
+                    showResult('错误：必须使用且仅使用给定的四个数字！', 'incorrect');
+                    return;
+                }
+                
+                // 计算结果
+                const result = evaluateExpression(currentExpression);
+                const roundedResult = Math.round(result * 1000000) / 1000000; // 处理浮点精度
+                
+                if (Math.abs(roundedResult - 24) < 1e-10) {
+                    showResult(`🎉 正确！${currentExpression.replace(/\*/g, '×').replace(/\//g, '÷')} = 24`, 'correct');
+                } else {
+                    showResult(`❌ 错误！你的表达式等于 ${roundedResult}，不是24`, 'incorrect');
+                }
+            } catch (error) {
+                showResult('❌ 表达式无效，请检查语法！', 'incorrect');
+            }
+        }
+        
+        // 验证数字使用情况
+        function validateNumbersUsage() {
+            // 提取表达式中的所有数字
+            const expressionNumbers = currentExpression.match(/\d+/g) || [];
+            
+            // 必须恰好有4个数字
+            if (expressionNumbers.length !== 4) {
+                return false;
+            }
+            
+            // 转换为数字数组
+            const usedNumbers = expressionNumbers.map(n => parseInt(n));
+            
+            // 创建副本用于比较
+            const availableNumbers = [...currentNumbers];
+            const usedCopy = [...usedNumbers];
+            
+            // 检查每个使用的数字是否在可用数字中
+            for (let i = 0; i < usedCopy.length; i++) {
+                const index = availableNumbers.indexOf(usedCopy[i]);
+                if (index === -1) {
+                    return false; // 使用了不存在的数字
+                }
+                availableNumbers.splice(index, 1); // 移除已使用的数字
+            }
+            
+            return availableNumbers.length === 0; // 所有数字都必须被使用
+        }
+        
+        // 安全计算表达式
+        function evaluateExpression(expr) {
+            // 基本的安全检查
+            const safeExpr = expr.replace(/[^0-9+\-*/().]/g, '');
+            
+            // 使用 Function 构造器进行安全计算（比 eval 更安全）
+            try {
+                // eslint-disable-next-line no-new-func
+                const calculator = new Function('return (' + safeExpr + ')');
+                return calculator();
+            } catch (error) {
+                throw new Error('Invalid expression');
+            }
+        }
+        
+        // 24点求解算法
+        function find24Solution(numbers) {
+            // 将数字转换为浮点数以处理除法
+            const nums = numbers.map(n => parseFloat(n));
+            
+            // 所有可能的运算符
+            const ops = ['+', '-', '*', '/'];
+            
+            // 生成所有可能的数字排列
+            const permutations = getPermutations(nums);
+            
+            // 尝试所有可能的组合
+            for (const perm of permutations) {
+                for (const op1 of ops) {
+                    for (const op2 of ops) {
+                        for (const op3 of ops) {
+                            // 尝试不同的括号组合
+                            
+                            // ((a op1 b) op2 c) op3 d
+                            try {
+                                let result = calculate(calculate(calculate(perm[0], perm[1], op1), perm[2], op2), perm[3], op3);
+                                if (Math.abs(result - 24) < 1e-10) {
+                                    return `((${perm[0]} ${op1} ${perm[1]}) ${op2} ${perm[2]}) ${op3} ${perm[3]}`;
+                                }
+                            } catch (e) {}
+                            
+                            // (a op1 (b op2 c)) op3 d
+                            try {
+                                let result = calculate(calculate(perm[0], calculate(perm[1], perm[2], op2), op1), perm[3], op3);
+                                if (Math.abs(result - 24) < 1e-10) {
+                                    return `(${perm[0]} ${op1} (${perm[1]} ${op2} ${perm[2]})) ${op3} ${perm[3]}`;
+                                }
+                            } catch (e) {}
+                            
+                            // a op1 ((b op2 c) op3 d)
+                            try {
+                                let result = calculate(perm[0], calculate(calculate(perm[1], perm[2], op2), perm[3], op3), op1);
+                                if (Math.abs(result - 24) < 1e-10) {
+                                    return `${perm[0]} ${op1} ((${perm[1]} ${op2} ${perm[2]}) ${op3} ${perm[3]})`;
+                                }
+                            } catch (e) {}
+                            
+                            // a op1 (b op2 (c op3 d))
+                            try {
+                                let result = calculate(perm[0], calculate(perm[1], calculate(perm[2], perm[3], op3), op2), op1);
+                                if (Math.abs(result - 24) < 1e-10) {
+                                    return `${perm[0]} ${op1} (${perm[1]} ${op2} (${perm[2]} ${op3} ${perm[3]}))`;
+                                }
+                            } catch (e) {}
+                            
+                            // (a op1 b) op2 (c op3 d)
+                            try {
+                                let result = calculate(calculate(perm[0], perm[1], op1), calculate(perm[2], perm[3], op3), op2);
+                                if (Math.abs(result - 24) < 1e-10) {
+                                    return `(${perm[0]} ${op1} ${perm[1]}) ${op2} (${perm[2]} ${op3} ${perm[3]})`;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                }
+            }
+            
+            return null;
+        }
+        
+        // 安全的计算函数
+        function calculate(a, b, op) {
+            switch (op) {
+                case '+': return a + b;
+                case '-': return a - b;
+                case '*': return a * b;
+                case '/': 
+                    if (Math.abs(b) < 1e-10) throw new Error('Division by zero');
+                    return a / b;
+                default: throw new Error('Invalid operator');
+            }
+        }
+        
+        // 生成数组的所有排列
+        function getPermutations(arr) {
+            if (arr.length <= 1) return [arr];
+            const result = [];
+            for (let i = 0; i < arr.length; i++) {
+                const current = arr[i];
+                const remaining = arr.slice(0, i).concat(arr.slice(i + 1));
+                const remainingPerms = getPermutations(remaining);
+                for (const perm of remainingPerms) {
+                    result.push([current].concat(perm));
+                }
+            }
+            return result;
+        }
+        
+        // 显示结果
+        function showResult(message, className) {
+            const resultElement = document.getElementById('result');
+            resultElement.innerHTML = message;
+            resultElement.className = 'result ' + className;
+        }
+        
+        // 开始新游戏
+        function newGame() {
+            const numbers = generateNumbers();
+            updateNumbers(numbers);
+            currentExpression = '';
+            updateExpressionDisplay();
+            showResult('点击数字和运算符构建表达式！', '');
+        }
+        
+        // 求解24点
+        function solve24() {
+            const solution = find24Solution(currentNumbers);
+            const resultElement = document.getElementById('result');
+            if (solution) {
+                const displaySolution = solution.replace(/\*/g, '×').replace(/\//g, '÷');
+                showResult(`<span class="solution">${displaySolution} = 24</span>`, 'solution');
+            } else {
+                showResult('<span class="no-solution">这组数字无解！</span>', 'no-solution');
+            }
+        }
+        
+        // 页面加载时开始新游戏
+        window.onload = newGame;
+    </script>
+</body>
+</html>
